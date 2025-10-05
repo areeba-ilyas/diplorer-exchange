@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mock database - in real app, use real database
+// Mock database
 const users = [
   {
     id: '1',
-    email: 'demo@fixedfloat.com',
-    password: 'demo123', // In real app, this would be hashed
+    email: 'areebakhan2k22@gmail.com',
+    password: 'demo123',
     verified: true
   }
 ];
@@ -42,17 +42,18 @@ export async function POST(request: NextRequest) {
     // Create session token
     const token = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
     
-    // Create response first
+    // Create response with success
     const response = NextResponse.json({
       success: true,
       message: 'Sign in successful',
+      redirectTo: '/', // ✅ Homepage redirect URL
       user: {
         id: user.id,
         email: user.email
       }
     });
 
-    // Then set cookie on response
+    // Set cookie
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

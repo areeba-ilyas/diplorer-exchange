@@ -1,243 +1,284 @@
-// app/components/ExchangeForm.tsx
-'use client';
-import React, { useState, useEffect } from 'react';
+"use client";
+import { useState, useEffect } from 'react';
 
-interface ExchangeRate {
-  from: string;
-  to: string;
-  rate: number;
-}
-
-const ExchangeForm = () => {
+export default function ExchangeForm() {
   const [fromCurrency, setFromCurrency] = useState('BTC');
   const [toCurrency, setToCurrency] = useState('USDT');
-  const [amount, setAmount] = useState('');
-  const [recipientAddress, setRecipientAddress] = useState('');
-  const [convertedAmount, setConvertedAmount] = useState('');
-  const [networkFee, setNetworkFee] = useState('');
-  const [serviceFee, setServiceFee] = useState('');
-  const [finalAmount, setFinalAmount] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [amount, setAmount] = useState('0.008166');
+  const [address, setAddress] = useState('');
+  const [orderType, setOrderType] = useState('fixed');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showAddressInput, setShowAddressInput] = useState(false);
+  const [rateInfo, setRateInfo] = useState<any>(null);
 
-  // Exchange rates data
-  const exchangeRates: ExchangeRate[] = [
-    { from: 'BTC', to: 'USDT', rate: 45000 },
-    { from: 'ETH', to: 'USDT', rate: 3000 },
-    { from: 'USDT', to: 'BTC', rate: 0.000022 },
-    { from: 'USDT', to: 'ETH', rate: 0.00033 },
-    { from: 'BTC', to: 'ETH', rate: 15 },
-    { from: 'ETH', to: 'BTC', rate: 0.066 },
-  ];
-
-  // Get all unique currencies
-  const allCurrencies = React.useMemo(() => {
-    const currencies = new Set<string>();
-    exchangeRates.forEach((item: ExchangeRate) => {
-      currencies.add(item.from);
-      currencies.add(item.to);
-    });
-    return Array.from(currencies);
-  }, []);
-
-  // Calculate fees and conversion
-  const calculateExchange = () => {
-    if (!amount || parseFloat(amount) <= 0) return;
-
-    const rate = exchangeRates.find(
-      (item: ExchangeRate) => item.from === fromCurrency && item.to === toCurrency
-    )?.rate;
-
-    if (rate) {
-      const amountNum = parseFloat(amount);
-      const serviceFeeAmount = amountNum * 0.01; // 1% service fee
-      const networkFeeAmount = amountNum * 0.005; // 0.5% network fee
-      const totalFees = serviceFeeAmount + networkFeeAmount;
-      const amountAfterFees = amountNum - totalFees;
-      const convertedValue = amountAfterFees * rate;
-
-      setServiceFee(serviceFeeAmount.toFixed(6));
-      setNetworkFee(networkFeeAmount.toFixed(6));
-      setFinalAmount(amountAfterFees.toFixed(6));
-      setConvertedAmount(convertedValue.toFixed(6));
-    }
-  };
-
-  // Auto-calculate when inputs change
+  // Real-time rate calculation
   useEffect(() => {
-    calculateExchange();
-  }, [amount, fromCurrency, toCurrency]);
-
-  const handleExchange = async () => {
-    if (!recipientAddress.trim()) {
-      alert('Please enter recipient address');
-      return;
+    if (amount && parseFloat(amount) > 0) {
+      calculateRate();
     }
+  }, [fromCurrency, toCurrency, amount, orderType]);
 
-    if (!amount || parseFloat(amount) <= 0) {
-      alert('Please enter valid amount');
-      return;
-    }
-
-    if (!convertedAmount) {
-      alert('Please check the exchange rate');
-      return;
-    }
-
-    setIsLoading(true);
-
-    // Simulate API call
+  const calculateRate = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Success message
-      alert(`Exchange successful!\n\nYou sent: ${amount} ${fromCurrency}\nYou received: ${convertedAmount} ${toCurrency}\nRecipient: ${recipientAddress}`);
-      
-      // Reset form
-      setAmount('');
-      setRecipientAddress('');
-      setConvertedAmount('');
-      setNetworkFee('');
-      setServiceFee('');
-      setFinalAmount('');
+      const response = await fetch('/api/exchange/rate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fromCurrency,
+          toCurrency,
+          amount: parseFloat(amount),
+          orderType
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setRateInfo(data);
+      }
     } catch (error) {
-      alert('Exchange failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Rate calculation error:', error);
     }
   };
 
-  // Generate random address (for testing)
-  const generateRandomAddress = () => {
-    const chars = '0123456789ABCDEF';
-    let address = '0x';
-    for (let i = 0; i < 40; i++) {
-      address += chars[Math.floor(Math.random() * 16)];
+  const handleFirstExchangeClick = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!amount || parseFloat(amount) <= 0) {
+      setError('Please enter a valid amount');
+      return;
     }
-    setRecipientAddress(address);
+
+    // ✅ FIXEDFLOAT STYLE: Pehle address input show karo
+    setShowAddressInput(true);
+    setError('');
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
+
+  const handleFinalExchange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (!address.trim()) {
+      setError('Please enter your destination address');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/exchange/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fromCurrency,
+          toCurrency,
+          amount: parseFloat(amount),
+          address,
+          orderType,
+          rate: rateInfo?.rate,
+          expectedAmount: rateInfo?.expectedAmount
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        window.location.href = `/order/${data.order.id}`;
+      } else {
+        setError(data.error || 'Exchange creation failed');
+      }
+
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="exchange-form max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg border border-gray-200">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Crypto Exchange</h2>
-      
-      <div className="space-y-4">
-        {/* From Currency */}
-        <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">From Currency</label>
-          <select 
-            value={fromCurrency}
-            onChange={(e) => setFromCurrency(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {allCurrencies.map((currency) => (
-              <option key={currency} value={currency}>
-                {currency}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+        Instant Exchange
+      </h2>
 
-        {/* To Currency */}
-        <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">To Currency</label>
-          <select 
-            value={toCurrency}
-            onChange={(e) => setToCurrency(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {allCurrencies.map((currency) => (
-              <option key={currency} value={currency}>
-                {currency}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Amount */}
-        <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">Amount</label>
-          <input 
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Enter amount"
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            min="0"
-            step="0.000001"
-          />
-        </div>
-
-        {/* Recipient Address */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <label className="block text-sm font-medium text-gray-700">Recipient Address</label>
-            <button 
-              type="button"
-              onClick={generateRandomAddress}
-              className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-gray-600"
+      <form onSubmit={showAddressInput ? handleFinalExchange : handleFirstExchangeClick} className="space-y-6">
+        {/* Send Section */}
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Send
+          </label>
+          <div className="flex justify-between items-center">
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="bg-transparent text-2xl font-bold text-gray-900 dark:text-white w-32 border-none focus:outline-none"
+              step="0.000001"
+            />
+            <select
+              value={fromCurrency}
+              onChange={(e) => setFromCurrency(e.target.value)}
+              className="bg-transparent border-none text-gray-900 dark:text-white font-semibold focus:outline-none"
             >
-              Generate Test Address
-            </button>
+              <option value="BTC">BTC</option>
+              <option value="ETH">ETH</option>
+              <option value="AAVEETH">AAVEETH</option>
+              <option value="USDT">USDT</option>
+            </select>
           </div>
-          <input 
-            type="text"
-            value={recipientAddress}
-            onChange={(e) => setRecipientAddress(e.target.value)}
-            placeholder="Enter recipient wallet address"
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
         </div>
 
-        {/* Calculation Results */}
-        {convertedAmount && (
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="font-semibold text-gray-800 mb-3">Exchange Summary</h3>
+        {/* Exchange Rate Display */}
+        {rateInfo && (
+          <div className="text-center text-sm text-gray-600 dark:text-gray-400 space-y-1">
+            <p>1 {fromCurrency} = {rateInfo.rate} {toCurrency}</p>
+            <p className="text-green-600 font-semibold">
+              ${(parseFloat(amount) * 45000).toFixed(2)}
+            </p>
+          </div>
+        )}
+
+        {/* Receive Section */}
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Receive
+          </label>
+          <div className="flex justify-between items-center">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              {rateInfo ? rateInfo.expectedAmount : '0.00'}
+            </span>
+            <select
+              value={toCurrency}
+              onChange={(e) => setToCurrency(e.target.value)}
+              className="bg-transparent border-none text-gray-900 dark:text-white font-semibold focus:outline-none"
+            >
+              <option value="USDT">USDT</option>
+              <option value="ADA">ADA</option>
+              <option value="BTC">BTC</option>
+              <option value="ETH">ETH</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Order Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            Order type
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className={`flex flex-col p-3 border rounded-lg cursor-pointer transition-all ${
+              orderType === 'fixed' 
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+            }`}>
+              <div className="flex items-center mb-1">
+                <input
+                  type="radio"
+                  name="orderType"
+                  value="fixed"
+                  checked={orderType === 'fixed'}
+                  onChange={(e) => setOrderType(e.target.value)}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Fixed rate
+                </span>
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+                (1.0%)
+              </span>
+            </label>
             
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">You send:</span>
-                <span className="font-medium">{amount} {fromCurrency}</span>
+            <label className={`flex flex-col p-3 border rounded-lg cursor-pointer transition-all ${
+              orderType === 'float' 
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+            }`}>
+              <div className="flex items-center mb-1">
+                <input
+                  type="radio"
+                  name="orderType"
+                  value="float"
+                  checked={orderType === 'float'}
+                  onChange={(e) => setOrderType(e.target.value)}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Float rate
+                </span>
               </div>
-              
-              <div className="flex justify-between">
-                <span className="text-gray-600">Service fee (1%):</span>
-                <span className="text-red-500">-{serviceFee} {fromCurrency}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+                (0.5%)
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {/* ✅ DESTINATION ADDRESS INPUT - Only shows after first click */}
+        {showAddressInput && (
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6 animate-fadeIn">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Destination
+              </h3>
+              <div className="mb-2">
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                  {toCurrency === 'USDT' ? 'TRC20' : toCurrency}
+                </span>
               </div>
-              
-              <div className="flex justify-between">
-                <span className="text-gray-600">Network fee (0.5%):</span>
-                <span className="text-red-500">-{networkFee} {fromCurrency}</span>
-              </div>
-              
-              <div className="flex justify-between border-t border-gray-200 pt-2">
-                <span className="text-gray-600">Amount after fees:</span>
-                <span className="font-medium">{finalAmount} {fromCurrency}</span>
-              </div>
-              
-              <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">
-                <span className="text-gray-800">You receive:</span>
-                <span className="text-green-600">{convertedAmount} {toCurrency}</span>
-              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Enter your {toCurrency === 'USDT' ? 'Tether (TRC20)' : toCurrency} address
+              </p>
+              <input
+                type="text"
+                placeholder={`Your ${toCurrency} address...`}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                autoFocus
+              />
             </div>
           </div>
         )}
 
-        {/* Exchange Button */}
-        <button 
-          onClick={handleExchange}
-          disabled={isLoading || !recipientAddress || !amount || !convertedAmount}
-          className="w-full bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 font-semibold"
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm animate-fadeIn">
+            {error}
+          </div>
+        )}
+
+        {/* Exchange Now Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg hover:shadow-xl"
         >
-          {isLoading ? 'Processing Exchange...' : 'Exchange Now'}
+          {loading ? 'Processing...' : 'Exchange now'}
         </button>
 
-        {/* Info */}
-        <div className="text-xs text-gray-500 text-center">
-          <p>1% service fee + 0.5% network fee applied</p>
-        </div>
-      </div>
+        {/* Terms */}
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+          By using the site and creating an exchange, you agree to the FixedFloat's 
+          Terms of Service and Privacy Policy.
+        </p>
+      </form>
+
+      {/* Add CSS for animation */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
-};
-
-export default ExchangeForm;
+}
