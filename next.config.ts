@@ -1,9 +1,7 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  // ❌ REMOVE output: 'export' for API functionality
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    unoptimized: true,  // Still keep for hosting compatibility
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -11,6 +9,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
+  
+  // ✅ YEH ADD KAREIN
+  experimental: {
+    esmExternals: false
+  }
+}
 
-export default nextConfig;
+module.exports = nextConfig
