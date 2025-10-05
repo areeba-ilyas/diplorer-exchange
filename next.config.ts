@@ -1,19 +1,18 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  images: {
-    unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'assets.coingecko.com',
-      },
-    ],
-  },
-  
-  // ✅ YEH ADD KAREIN
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   experimental: {
-    esmExternals: false
-  }
+    esmExternals: true,
+  },
+  webpack: (config: any) => {
+    // CSS files handle karo
+    config.module.rules.push({
+      test: /\.css$/,
+      use: ['style-loader', 'css-loader'],
+    });
+    return config;
+  },
+  transpilePackages: ['tw-animate-css'],
 }
 
-module.exports = nextConfig
+export default nextConfig;
