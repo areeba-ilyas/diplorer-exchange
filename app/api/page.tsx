@@ -1,227 +1,119 @@
 export default function APIPage() {
+  const endpoints = [
+    {
+      method: 'GET',
+      path: '/api/exchange/rates',
+      description: 'Get current exchange rates',
+      parameters: '?from=BTC&to=ETH&amount=1.0'
+    },
+    {
+      method: 'POST',
+      path: '/api/exchange/create-order',
+      description: 'Create a new exchange order',
+      parameters: '{"fromCurrency": "BTC", "toCurrency": "ETH", "fromAmount": 0.1, "toAddress": "0x..."}'
+    },
+    {
+      method: 'GET',
+      path: '/api/exchange/track-order',
+      description: 'Track order status',
+      parameters: '?id=FF123456'
+    },
+    {
+      method: 'POST',
+      path: '/api/auth/signup',
+      description: 'User registration',
+      parameters: '{"email": "user@example.com", "password": "securepassword"}'
+    },
+    {
+      method: 'POST',
+      path: '/api/auth/signin',
+      description: 'User authentication',
+      parameters: '{"email": "user@example.com", "password": "securepassword"}'
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-gray-900 dark:to-purple-900 py-8">
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
-          <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">API Documentation</h1>
-          
-          <div className="prose dark:prose-invert max-w-none">
-            <p className="text-lg mb-6">
-              Integrate Diplorer's cryptocurrency exchange functionality directly into your applications 
-              using our robust API.
-            </p>
-
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-6 rounded-lg mb-8">
-              <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-                🔒 API Access Required
-              </h3>
-              <p className="text-yellow-700 dark:text-yellow-300">
-                To get API access, please contact our team at <strong>api@diplorer.com</strong> 
-                with your project details and use case.
-              </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">FIXED FLOAT</span>
             </div>
-
-            <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-900 dark:text-white">Available Endpoints</h2>
-
-            <div className="space-y-6">
-              {/* Exchange Rate Endpoint */}
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <span className="inline-block bg-green-100 text-green-800 text-sm font-mono px-2 py-1 rounded">
-                      GET
-                    </span>
-                    <code className="ml-2 text-lg font-semibold">/api/fixedfloat/coin-rate</code>
-                  </div>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-3">
-                  Get real-time exchange rates between cryptocurrencies with 2% commission included.
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded">
-                  <code className="text-sm">
-                    {`// Parameters\n`}
-                    {`?from=BTC&to=ETH&amount=1.0&type=float\n\n`}
-                    {`// Response\n`}
-                    {`{\n`}
-                    {`  "ok": true,\n`}
-                    {`  "rates": [{\n`}
-                    {`    "from": "BTC",\n`}
-                    {`    "to": "ETH",\n`}
-                    {`    "in": 1.0,\n`}
-                    {`    "out": 15.32,\n`}
-                    {`    "commissionRate": 0.02,\n`}
-                    {`    "finalAmount": 15.01\n`}
-                    {`  }]\n`}
-                    {`}`}
-                  </code>
-                </div>
-              </div>
-
-              {/* Create Order Endpoint */}
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <span className="inline-block bg-blue-100 text-blue-800 text-sm font-mono px-2 py-1 rounded">
-                      POST
-                    </span>
-                    <code className="ml-2 text-lg font-semibold">/api/fixedfloat/create-order</code>
-                  </div>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-3">
-                  Create a new cryptocurrency exchange order.
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded">
-                  <code className="text-sm">
-                    {`// Request Body\n`}
-                    {`{\n`}
-                    {`  "fromCurrency": "BTC",\n`}
-                    {`  "toCurrency": "ETH",\n`}
-                    {`  "fromAmount": 1.0,\n`}
-                    {`  "toAddress": "0x...",\n`}
-                    {`  "email": "user@example.com"\n`}
-                    {`}\n\n`}
-                    {`// Response\n`}
-                    {`{\n`}
-                    {`  "success": true,\n`}
-                    {`  "order": {\n`}
-                    {`    "id": "DPL123456",\n`}
-                    {`    "fixedFloatId": "FF789012",\n`}
-                    {`    "commission": {\n`}
-                    {`      "rate": 0.02,\n`}
-                    {`      "amount": 0.02\n`}
-                    {`    }\n`}
-                    {`  }\n`}
-                    {`}`}
-                  </code>
-                </div>
-              </div>
-
-              {/* Track Order Endpoint */}
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <span className="inline-block bg-green-100 text-green-800 text-sm font-mono px-2 py-1 rounded">
-                      GET
-                    </span>
-                    <code className="ml-2 text-lg font-semibold">/api/orders/track</code>
-                  </div>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-3">
-                  Track the status of an existing order.
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded">
-                  <code className="text-sm">
-                    {`// Parameters\n`}
-                    {`?id=DPL123456&email=user@example.com\n\n`}
-                    {`// Response\n`}
-                    {`{\n`}
-                    {`  "success": true,\n`}
-                    {`  "order": {\n`}
-                    {`    "id": "DPL123456",\n`}
-                    {`    "status": "completed",\n`}
-                    {`    "fromAmount": 1.0,\n`}
-                    {`    "toAmount": 15.01\n`}
-                    {`  }\n`}
-                    {`}`}
-                  </code>
-                </div>
-              </div>
-
-              {/* Admin Orders Endpoint */}
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <span className="inline-block bg-green-100 text-green-800 text-sm font-mono px-2 py-1 rounded">
-                      GET
-                    </span>
-                    <code className="ml-2 text-lg font-semibold">/api/admin/orders</code>
-                  </div>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-3">
-                  Admin endpoint to view all orders (requires authentication).
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded">
-                  <code className="text-sm">
-                    {`// Response\n`}
-                    {`{\n`}
-                    {`  "success": true,\n`}
-                    {`  "orders": [...],\n`}
-                    {`  "stats": {\n`}
-                    {`    "totalOrders": 156,\n`}
-                    {`    "totalCommission": 2.8\n`}
-                    {`  }\n`}
-                    {`}`}
-                  </code>
-                </div>
-              </div>
-            </div>
-
-            <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-900 dark:text-white">Commission Structure</h2>
-            <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-              <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
-                <li><strong>2% Service Commission</strong> applied to all exchanges</li>
-                <li>Commission automatically calculated and deducted</li>
-                <li>Transparent commission breakdown in all API responses</li>
-                <li>Real-time commission tracking in admin panel</li>
-              </ul>
-            </div>
-
-            <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-900 dark:text-white">Getting Started</h2>
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full w-8 h-8 flex items-center justify-center font-semibold mr-4 mt-1">
-                  1
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">Request API Access</h4>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Contact us at api@diplorer.com with your project details
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full w-8 h-8 flex items-center justify-center font-semibold mr-4 mt-1">
-                  2
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">Receive API Credentials</h4>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    We'll provide you with API keys and documentation
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full w-8 h-8 flex items-center justify-center font-semibold mr-4 mt-1">
-                  3
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">Start Integrating</h4>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Use our endpoints to integrate exchange functionality
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg mt-8">
-              <h3 className="text-xl font-semibold mb-2 text-blue-900 dark:text-blue-100">Need Help?</h3>
-              <p className="text-blue-800 dark:text-blue-200 mb-3">
-                Our technical team is available to assist with integration and answer any questions.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a href="mailto:api@diplorer.com" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-center transition duration-200">
-                  Email API Team
-                </a>
-                <a href="/contact" className="border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 py-3 rounded-lg text-center transition duration-200">
-                  Contact Support
-                </a>
-              </div>
+            <div className="flex items-center space-x-4">
+              <a href="/signin" className="text-gray-600 dark:text-gray-300 hover:text-blue-500">Sign in</a>
+              <a href="/signup" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium">Sign up</a>
             </div>
           </div>
+        </div>
+      </nav>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">API Documentation</h1>
+        <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+          Integrate Fixed Float exchange functionality into your application
+        </p>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Getting Started</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            To use our API, you'll need an API key. Contact our support team to get your API credentials.
+          </p>
+          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+            <code className="text-sm text-gray-800 dark:text-gray-200">
+              Base URL: https://fixedfloat.com/api/v1
+            </code>
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Available Endpoints</h2>
+        
+        <div className="space-y-6">
+          {endpoints.map((endpoint, index) => (
+            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                    endpoint.method === 'GET' ? 'bg-green-100 text-green-800' :
+                    endpoint.method === 'POST' ? 'bg-blue-100 text-blue-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {endpoint.method}
+                  </span>
+                  <span className="ml-3 font-mono text-lg text-gray-900 dark:text-white">
+                    {endpoint.path}
+                  </span>
+                </div>
+              </div>
+              
+              <p className="text-gray-600 dark:text-gray-400 mb-3">
+                {endpoint.description}
+              </p>
+              
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <code className="text-sm text-gray-800 dark:text-gray-200 break-all">
+                  {endpoint.parameters}
+                </code>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+            Need Help?
+          </h3>
+          <p className="text-blue-800 dark:text-blue-200 mb-4">
+            Our support team is available to help you with API integration.
+          </p>
+          <a 
+            href="/support" 
+            className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+          >
+            Contact Support
+          </a>
         </div>
       </div>
     </div>
   );
-} 
+}
