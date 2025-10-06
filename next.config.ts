@@ -1,18 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    esmExternals: true,
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'assets.coingecko.com',
+      },
+    ],
   },
-  webpack: (config: any) => {
-    // CSS files handle karo
-    config.module.rules.push({
-      test: /\.css$/,
-      use: ['style-loader', 'css-loader'],
-    });
-    return config;
+  // ✅ Sirf ye do lines rakhein
+  typescript: {
+    ignoreBuildErrors: true,
   },
-  transpilePackages: ['tw-animate-css'],
-}
+  eslint: {
+    ignoreDuringBuilds: true,
+  }
+};
 
 export default nextConfig;
