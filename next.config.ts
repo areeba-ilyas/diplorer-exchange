@@ -1,3 +1,4 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -10,7 +11,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // ✅ Sirf ye do lines rakhein
   typescript: {
     ignoreBuildErrors: true,
   },
